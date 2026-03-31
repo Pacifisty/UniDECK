@@ -9,7 +9,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { Role } from '../../common/enums/role.enum';
 import { Sector } from '../sectors/sector.entity';
 
