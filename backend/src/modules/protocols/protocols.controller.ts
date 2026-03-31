@@ -12,9 +12,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { ProtocolsService } from './protocols.service';
+import { buildMulterOptions } from '../../common/multer.config';
 import { CreateProtocolDto } from './dto/create-protocol.dto';
 import { UpdateProtocolDto } from './dto/update-protocol.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -70,17 +69,7 @@ export class ProtocolsController {
   }
 
   @Post(':id/attachments')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: process.env.UPLOAD_DIR || './uploads',
-        filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, file.fieldname + '-' + uniqueSuffix + extname(file.originalname));
-        },
-      }),
-    }),
-  )
+  @UseInterceptors(FileInterceptor('file', buildMulterOptions('protocols')))
   uploadAttachment(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
     return this.protocolsService.addAttachment(id, file.path);
   }
