@@ -31,7 +31,7 @@ export default function RegisterPage() {
       setAuth(res.data.access_token, res.data.user);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Nao foi possivel concluir o cadastro.');
+      setError(err.response?.data?.message || 'Não foi possível concluir o cadastro.');
     } finally {
       setLoading(false);
     }
