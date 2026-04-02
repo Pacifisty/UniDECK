@@ -45,7 +45,7 @@ export default function RegisterPage() {
       setAuth(res.data.access_token, res.data.user);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(getRegisterErrorMessage(err));
+
     } finally {
       setLoading(false);
     }

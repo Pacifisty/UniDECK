@@ -17,7 +17,7 @@ export class UsersService {
       where: { email: createUserDto.email },
     });
     if (existing) {
-      throw new ConflictException('Email already in use');
+      throw new ConflictException('E-mail já está em uso');
     }
     const user = this.usersRepository.create(createUserDto);
     return this.usersRepository.save(user);

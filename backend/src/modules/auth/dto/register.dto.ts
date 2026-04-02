@@ -1,17 +1,17 @@
 import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
 
 export class RegisterDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'Informe um e-mail válido' })
   email: string;
 
-  @IsString()
+  @IsString({ message: 'Nome é obrigatório' })
   name: string;
 
-  @IsString()
-  @MinLength(6)
+  @IsString({ message: 'Senha é obrigatória' })
+  @MinLength(6, { message: 'A senha deve ter pelo menos 6 caracteres' })
   password: string;
 
-  @IsString()
+  @IsString({ message: 'ID do setor inválido' })
   @IsOptional()
   sectorId?: string;
 }
