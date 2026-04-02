@@ -14,6 +14,20 @@ interface RegisterForm {
   confirmPassword: string;
 }
 
+function getRegisterErrorMessage(err: any): string {
+  const apiMessage = err?.response?.data?.message;
+
+  if (Array.isArray(apiMessage)) {
+    return apiMessage.join(' ');
+  }
+
+  if (typeof apiMessage === 'string' && apiMessage.trim()) {
+    return apiMessage;
+  }
+
+  return 'Nao foi possivel concluir o cadastro.';
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState('');
@@ -31,7 +45,7 @@ export default function RegisterPage() {
       setAuth(res.data.access_token, res.data.user);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Nao foi possivel concluir o cadastro.');
+      setError(getRegisterErrorMessage(err));
     } finally {
       setLoading(false);
     }
