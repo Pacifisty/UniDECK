@@ -4,6 +4,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import api from '@/lib/api';
 import { User, Sector, ROLE_LABELS } from '@/types';
 import { useForm } from 'react-hook-form';
+import { UserPlus, X, Loader2, Users } from 'lucide-react';
 
 interface UserForm {
   name: string;
@@ -59,57 +60,66 @@ export default function UsersPage() {
     }
   };
 
+  const getInitials = (name: string) =>
+    name.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
+
   return (
     <MainLayout>
-      <div className="space-y-4">
+      <div className="space-y-5 max-w-6xl">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-          >
-            + Novo Usuário
+          <div>
+            <h1 className="page-title">Usuários</h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {users.length} usuário{users.length !== 1 ? 's' : ''} cadastrado{users.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <button onClick={() => setShowForm(!showForm)} className={showForm ? 'btn-secondary' : 'btn-primary'}>
+            {showForm ? (
+              <><X className="w-4 h-4" /> Cancelar</>
+            ) : (
+              <><UserPlus className="w-4 h-4" /> Novo Usuário</>
+            )}
           </button>
         </div>
 
         {showForm && (
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Novo Usuário</h2>
+          <div className="card p-6">
+            <h2 className="section-title mb-4">Dados do Novo Usuário</h2>
             <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
-                <input {...register('name', { required: 'Nome é obrigatório' })} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Nome <span className="text-red-500">*</span></label>
+                <input {...register('name', { required: 'Nome é obrigatório' })} className="input-base" />
                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">E-mail *</label>
-                <input type="email" {...register('email', { required: 'E-mail é obrigatório' })} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">E-mail <span className="text-red-500">*</span></label>
+                <input type="email" {...register('email', { required: 'E-mail é obrigatório' })} className="input-base" />
                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Senha *</label>
-                <input type="password" {...register('password', { required: 'Senha é obrigatória', minLength: { value: 6, message: 'Mínimo 6 caracteres' } })} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Senha <span className="text-red-500">*</span></label>
+                <input type="password" {...register('password', { required: 'Senha é obrigatória', minLength: { value: 6, message: 'Mínimo 6 caracteres' } })} className="input-base" />
                 {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Perfil</label>
-                <select {...register('role')} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Perfil</label>
+                <select {...register('role')} className="input-base">
                   {Object.entries(ROLE_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>{label}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">CPF</label>
-                <input {...register('cpf')} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="000.000.000-00" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">CPF</label>
+                <input {...register('cpf')} className="input-base" placeholder="000.000.000-00" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Cargo</label>
-                <input {...register('position')} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Cargo</label>
+                <input {...register('position')} className="input-base" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Setor</label>
-                <select {...register('sectorId')} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Setor</label>
+                <select {...register('sectorId')} className="input-base">
                   <option value="">Selecione um setor</option>
                   {sectors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
@@ -117,50 +127,66 @@ export default function UsersPage() {
               {error && (
                 <div className="md:col-span-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
               )}
-              <div className="md:col-span-2 flex gap-3 justify-end">
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition">Cancelar</button>
-                <button type="submit" disabled={submitting} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50">
-                  {submitting ? 'Salvando...' : 'Salvar Usuário'}
+              <div className="md:col-span-2 flex gap-3 justify-end pt-2 border-t border-slate-100">
+                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancelar</button>
+                <button type="submit" disabled={submitting} className="btn-primary">
+                  {submitting ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+                  ) : (
+                    <><UserPlus className="w-4 h-4" /> Criar Usuário</>
+                  )}
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="table-container">
           {loading ? (
-            <div className="text-center py-12 text-gray-500">Carregando...</div>
+            <div className="loading-state">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+              <span className="text-sm text-slate-500">Carregando usuários...</span>
+            </div>
           ) : users.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">Nenhum usuário cadastrado</div>
+            <div className="empty-state">
+              <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                <Users className="w-7 h-7 text-slate-400" />
+              </div>
+              <p className="font-medium text-slate-700">Nenhum usuário cadastrado</p>
+            </div>
           ) : (
             <table className="w-full">
-              <thead className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+              <thead className="table-header">
                 <tr>
-                  <th className="px-6 py-3 text-left">Nome</th>
-                  <th className="px-6 py-3 text-left">E-mail</th>
-                  <th className="px-6 py-3 text-left">Perfil</th>
-                  <th className="px-6 py-3 text-left">Setor</th>
-                  <th className="px-6 py-3 text-left">Cargo</th>
-                  <th className="px-6 py-3 text-left">Status</th>
+                  <th>Usuário</th>
+                  <th>E-mail</th>
+                  <th>Perfil</th>
+                  <th>Setor</th>
+                  <th>Cargo</th>
+                  <th>Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody>
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
+                  <tr key={user.id} className="table-row">
+                    <td>
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-700">
-                          {user.name.charAt(0).toUpperCase()}
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700 shrink-0">
+                          {getInitials(user.name)}
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{user.name}</span>
+                        <span className="text-sm font-semibold text-slate-900">{user.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{ROLE_LABELS[user.role] || user.role}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{user.sector?.name || '-'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{user.position || '-'}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    <td><span className="text-sm text-slate-600">{user.email}</span></td>
+                    <td>
+                      <span className="text-xs font-medium bg-slate-100 text-slate-700 px-2 py-1 rounded-md">
+                        {ROLE_LABELS[user.role] || user.role}
+                      </span>
+                    </td>
+                    <td><span className="text-sm text-slate-600">{user.sector?.name || '—'}</span></td>
+                    <td><span className="text-sm text-slate-600">{user.position || '—'}</span></td>
+                    <td>
+                      <span className={`badge ${user.isActive ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200' : 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'}`}>
                         {user.isActive ? 'Ativo' : 'Inativo'}
                       </span>
                     </td>
