@@ -4,6 +4,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import api from '@/lib/api';
 import { Sector } from '@/types';
 import { useForm } from 'react-hook-form';
+import { Building2, X, Loader2, Plus } from 'lucide-react';
 
 interface SectorForm {
   name: string;
@@ -52,88 +53,115 @@ export default function SectorsPage() {
 
   return (
     <MainLayout>
-      <div className="space-y-4">
+      <div className="space-y-5 max-w-6xl">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Setores</h1>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-          >
-            + Novo Setor
+          <div>
+            <h1 className="page-title">Setores</h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {sectors.length} setor{sectors.length !== 1 ? 'es' : ''} cadastrado{sectors.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <button onClick={() => setShowForm(!showForm)} className={showForm ? 'btn-secondary' : 'btn-primary'}>
+            {showForm ? (
+              <><X className="w-4 h-4" /> Cancelar</>
+            ) : (
+              <><Plus className="w-4 h-4" /> Novo Setor</>
+            )}
           </button>
         </div>
 
         {showForm && (
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Novo Setor</h2>
+          <div className="card p-6">
+            <h2 className="section-title mb-4">Dados do Novo Setor</h2>
             <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Nome <span className="text-red-500">*</span></label>
                 <input
                   {...register('name', { required: 'Nome é obrigatório' })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="input-base"
                 />
                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Código *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Código <span className="text-red-500">*</span></label>
                 <input
                   {...register('code', { required: 'Código é obrigatório' })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="input-base"
                   placeholder="Ex: SEMAE, SEC-SAUDE"
                 />
                 {errors.code && <p className="text-red-500 text-xs mt-1">{errors.code.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Órgão</label>
-                <input {...register('organ')} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Órgão</label>
+                <input {...register('organ')} className="input-base" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Secretaria</label>
-                <input {...register('secretariat')} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Secretaria</label>
+                <input {...register('secretariat')} className="input-base" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-                <input {...register('description')} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Descrição</label>
+                <input {...register('description')} className="input-base" />
               </div>
               {error && (
                 <div className="md:col-span-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
               )}
-              <div className="md:col-span-2 flex gap-3 justify-end">
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition">Cancelar</button>
-                <button type="submit" disabled={submitting} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50">
-                  {submitting ? 'Salvando...' : 'Salvar Setor'}
+              <div className="md:col-span-2 flex gap-3 justify-end pt-2 border-t border-slate-100">
+                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancelar</button>
+                <button type="submit" disabled={submitting} className="btn-primary">
+                  {submitting ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+                  ) : (
+                    <><Building2 className="w-4 h-4" /> Criar Setor</>
+                  )}
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="table-container">
           {loading ? (
-            <div className="text-center py-12 text-gray-500">Carregando...</div>
+            <div className="loading-state">
+              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+              <span className="text-sm text-slate-500">Carregando setores...</span>
+            </div>
           ) : sectors.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">Nenhum setor cadastrado</div>
+            <div className="empty-state">
+              <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                <Building2 className="w-7 h-7 text-slate-400" />
+              </div>
+              <p className="font-medium text-slate-700">Nenhum setor cadastrado</p>
+            </div>
           ) : (
             <table className="w-full">
-              <thead className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+              <thead className="table-header">
                 <tr>
-                  <th className="px-6 py-3 text-left">Nome</th>
-                  <th className="px-6 py-3 text-left">Código</th>
-                  <th className="px-6 py-3 text-left">Órgão</th>
-                  <th className="px-6 py-3 text-left">Secretaria</th>
-                  <th className="px-6 py-3 text-left">Status</th>
+                  <th>Nome</th>
+                  <th>Código</th>
+                  <th>Órgão</th>
+                  <th>Secretaria</th>
+                  <th>Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody>
                 {sectors.map((sector) => (
-                  <tr key={sector.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{sector.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600 font-mono">{sector.code}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{sector.organ || '-'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{sector.secretariat || '-'}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${sector.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                  <tr key={sector.id} className="table-row">
+                    <td>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
+                          <Building2 className="w-4 h-4 text-violet-600" />
+                        </div>
+                        <span className="text-sm font-semibold text-slate-900">{sector.name}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="text-xs font-mono font-semibold bg-slate-100 text-slate-700 px-2 py-1 rounded">{sector.code}</span>
+                    </td>
+                    <td><span className="text-sm text-slate-600">{sector.organ || '—'}</span></td>
+                    <td><span className="text-sm text-slate-600">{sector.secretariat || '—'}</span></td>
+                    <td>
+                      <span className={`badge ${sector.isActive ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200' : 'bg-slate-100 text-slate-600 ring-1 ring-slate-200'}`}>
                         {sector.isActive ? 'Ativo' : 'Inativo'}
                       </span>
                     </td>

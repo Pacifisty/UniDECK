@@ -4,14 +4,24 @@ import { usePathname } from 'next/navigation';
 import { clearAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
+import {
+  LayoutDashboard,
+  FileText,
+  FilePlus,
+  Building2,
+  Users,
+  BarChart3,
+  LogOut,
+  FileStack,
+} from 'lucide-react';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { href: '/protocols', label: 'Protocolos', icon: '📋' },
-  { href: '/protocols/new', label: 'Novo Protocolo', icon: '➕' },
-  { href: '/sectors', label: 'Setores', icon: '🏢' },
-  { href: '/users', label: 'Usuários', icon: '👥' },
-  { href: '/reports', label: 'Relatórios', icon: '📈' },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: false as const },
+  { href: '/protocols', label: 'Protocolos', icon: FileText, exact: false as const },
+  { href: '/protocols/new', label: 'Novo Protocolo', icon: FilePlus, exact: true as const },
+  { href: '/sectors', label: 'Setores', icon: Building2, exact: false as const },
+  { href: '/users', label: 'Usuários', icon: Users, exact: false as const },
+  { href: '/reports', label: 'Relatórios', icon: BarChart3, exact: false as const },
 ];
 
 export default function Sidebar() {
@@ -23,46 +33,57 @@ export default function Sidebar() {
     router.push('/login');
   };
 
+  const isActive = (item: typeof navItems[0]) => {
+    if (item.exact) return pathname === item.href;
+    if (item.href === '/protocols') {
+      return pathname === '/protocols' || (pathname.startsWith('/protocols/') && !pathname.startsWith('/protocols/new'));
+    }
+    return pathname === item.href || pathname.startsWith(item.href + '/');
+  };
+
   return (
-    <aside className="w-64 bg-blue-900 min-h-screen flex flex-col text-white">
-      <div className="p-6 border-b border-blue-800">
+    <aside className="w-64 bg-slate-900 min-h-screen flex flex-col shrink-0">
+      <div className="px-6 py-5 border-b border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-xl">📄</div>
+          <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+            <FileStack className="w-5 h-5 text-white" />
+          </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">UniDECK</h1>
-            <p className="text-blue-300 text-xs">Gestão Documental</p>
+            <span className="font-bold text-white text-base leading-none">UniDECK</span>
+            <p className="text-slate-500 text-xs mt-0.5">Gestão Documental</p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 p-4">
-        <ul className="space-y-1">
-          {navItems.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className={clsx(
-                  'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition',
-                  pathname === item.href || pathname.startsWith(item.href + '/')
-                    ? 'bg-blue-700 text-white'
-                    : 'text-blue-200 hover:bg-blue-800 hover:text-white'
-                )}
-              >
-                <span>{item.icon}</span>
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={clsx(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
+                active
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+              )}
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
-      <div className="p-4 border-t border-blue-800">
+      <div className="px-3 py-4 border-t border-slate-800">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-blue-200 hover:bg-blue-800 hover:text-white transition"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors duration-150"
         >
-          <span>🚪</span>
-          Sair
+          <LogOut className="w-4 h-4 shrink-0" />
+          <span>Sair</span>
         </button>
       </div>
     </aside>

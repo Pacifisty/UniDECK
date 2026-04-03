@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import MainLayout from '@/components/layout/MainLayout';
 import api from '@/lib/api';
 import { Sector } from '@/types';
+import { ArrowLeft, FilePlus, Loader2, User, Info } from 'lucide-react';
 
 interface NewProtocolForm {
   subject: string;
@@ -20,6 +21,20 @@ interface NewProtocolForm {
   originSectorId: string;
   currentSectorId: string;
   observations: string;
+}
+
+function FormSection({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+        <Icon className="w-4 h-4 text-slate-500" />
+        <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {children}
+      </div>
+    </div>
+  );
 }
 
 export default function NewProtocolPage() {
@@ -51,139 +66,135 @@ export default function NewProtocolPage() {
 
   return (
     <MainLayout>
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700">← Voltar</button>
-          <h1 className="text-2xl font-bold text-gray-900">Novo Protocolo</h1>
+      <div className="max-w-3xl mx-auto space-y-5">
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} className="btn-ghost py-1.5">
+            <ArrowLeft className="w-4 h-4" />
+            Voltar
+          </button>
+          <span className="text-slate-300">/</span>
+          <h1 className="page-title">Novo Protocolo</h1>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Assunto *</label>
-              <input
-                {...register('subject', { required: 'Assunto é obrigatório' })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Descreva o assunto do protocolo"
-              />
-              {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject.message}</p>}
-            </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <div className="card p-6">
+            <FormSection icon={Info} title="Informações Básicas">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Assunto <span className="text-red-500">*</span></label>
+                <input
+                  {...register('subject', { required: 'Assunto é obrigatório' })}
+                  className="input-base"
+                  placeholder="Descreva o assunto do protocolo"
+                />
+                {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject.message}</p>}
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Documento</label>
-              <input
-                {...register('documentType')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="Ex: Ofício, Requerimento, Memorando"
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Tipo de Documento</label>
+                <input
+                  {...register('documentType')}
+                  className="input-base"
+                  placeholder="Ex: Ofício, Requerimento, Memorando"
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prioridade</label>
-              <select
-                {...register('priority')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="low">Baixa</option>
-                <option value="normal">Normal</option>
-                <option value="high">Alta</option>
-                <option value="urgent">Urgente</option>
-              </select>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Prioridade</label>
+                <select {...register('priority')} className="input-base">
+                  <option value="low">Baixa</option>
+                  <option value="normal">Normal</option>
+                  <option value="high">Alta</option>
+                  <option value="urgent">Urgente</option>
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prazo</label>
-              <input
-                type="date"
-                {...register('dueDate')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Prazo</label>
+                <input type="date" {...register('dueDate')} className="input-base" />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Setor Destino</label>
-              <select
-                {...register('currentSectorId')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="">Selecione um setor</option>
-                {sectors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Setor Destino</label>
+                <select {...register('currentSectorId')} className="input-base">
+                  <option value="">Selecione um setor</option>
+                  {sectors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
 
-            <div className="md:col-span-2">
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <input type="checkbox" {...register('isExternal')} className="rounded" />
-                Protocolo Externo (cidadão)
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Descrição</label>
+                <textarea
+                  {...register('description')}
+                  rows={3}
+                  className="input-base resize-none"
+                  placeholder="Descrição detalhada do protocolo..."
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Observações</label>
+                <textarea
+                  {...register('observations')}
+                  rows={2}
+                  className="input-base resize-none"
+                />
+              </div>
+            </FormSection>
+          </div>
+
+          <div className="card p-6">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+              <User className="w-4 h-4 text-slate-500" />
+              <h3 className="text-sm font-semibold text-slate-700">Requerente</h3>
+            </div>
+            <div className="mb-4">
+              <label className="flex items-center gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register('isExternal')}
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-slate-700">Protocolo Externo (requerimento de cidadão)</span>
               </label>
             </div>
-
             {isExternal && (
-              <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Requerente</label>
-                  <input
-                    {...register('requesterName')}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Nome do Requerente</label>
+                  <input {...register('requesterName')} className="input-base" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ</label>
-                  <input
-                    {...register('requesterCpfCnpj')}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="000.000.000-00"
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">CPF/CNPJ</label>
+                  <input {...register('requesterCpfCnpj')} className="input-base" placeholder="000.000.000-00" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">E-mail do Requerente</label>
-                  <input
-                    type="email"
-                    {...register('requesterEmail')}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">E-mail</label>
+                  <input type="email" {...register('requesterEmail')} className="input-base" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                  <input
-                    {...register('requesterPhone')}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="(00) 00000-0000"
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Telefone</label>
+                  <input {...register('requesterPhone')} className="input-base" placeholder="(00) 00000-0000" />
                 </div>
-              </>
+              </div>
             )}
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-              <textarea
-                {...register('description')}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                placeholder="Descrição detalhada do protocolo..."
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Observações</label>
-              <textarea
-                {...register('observations')}
-                rows={2}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-              />
-            </div>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              {error}
+            </div>
           )}
 
           <div className="flex gap-3 justify-end">
-            <button type="button" onClick={() => router.back()} className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+            <button type="button" onClick={() => router.back()} className="btn-secondary">
               Cancelar
             </button>
-            <button type="submit" disabled={loading} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50">
-              {loading ? 'Criando...' : 'Criar Protocolo'}
+            <button type="submit" disabled={loading} className="btn-primary">
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Criando...</>
+              ) : (
+                <><FilePlus className="w-4 h-4" /> Criar Protocolo</>
+              )}
             </button>
           </div>
         </form>
