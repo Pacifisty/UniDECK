@@ -36,6 +36,8 @@ export class ProtocolsController {
     @Query('search') search?: string,
     @Query('status') status?: DocumentStatus,
     @Query('sectorId') sectorId?: string,
+    @Query('createdById') createdById?: string,
+    @Query('type') type?: string,
     @Query('isExternal') isExternal?: string,
   ) {
     return this.protocolsService.findAll({
@@ -44,6 +46,8 @@ export class ProtocolsController {
       search,
       status,
       sectorId,
+      createdById,
+      type,
       isExternal: isExternal !== undefined ? isExternal === 'true' : undefined,
     });
   }
@@ -51,6 +55,16 @@ export class ProtocolsController {
   @Get('stats')
   getStats() {
     return this.protocolsService.getStats();
+  }
+
+  @Get('inbox-counts')
+  getInboxCounts(@Request() req) {
+    return this.protocolsService.getInboxCounts(req.user.id, req.user.sectorId);
+  }
+
+  @Get('pending-signatures')
+  getPendingSignatures(@Request() req) {
+    return this.protocolsService.findPendingSignatures(req.user.id, req.user.sectorId);
   }
 
   @Get('by-number/:number')

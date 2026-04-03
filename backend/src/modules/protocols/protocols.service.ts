@@ -37,9 +37,11 @@ export class ProtocolsService {
     search?: string;
     status?: DocumentStatus;
     sectorId?: string;
+    createdById?: string;
+    type?: string;
     isExternal?: boolean;
   }) {
-    const { page = 1, limit = 20, search, status, sectorId, isExternal } = options;
+    const { page = 1, limit = 20, search, status, sectorId, createdById, type, isExternal } = options;
 
     const queryBuilder = this.protocolsRepository
       .createQueryBuilder('protocol')
@@ -58,6 +60,8 @@ export class ProtocolsService {
     }
     if (status) queryBuilder.andWhere('protocol.status = :status', { status });
     if (sectorId) queryBuilder.andWhere('protocol.currentSectorId = :sectorId', { sectorId });
+    if (createdById) queryBuilder.andWhere('protocol.createdById = :createdById', { createdById });
+    if (type) queryBuilder.andWhere('protocol.documentType = :type', { type });
     if (isExternal !== undefined) queryBuilder.andWhere('protocol.isExternal = :isExternal', { isExternal });
 
     const [data, total] = await queryBuilder.getManyAndCount();
@@ -97,6 +101,37 @@ export class ProtocolsService {
     if (!protocol.attachments) protocol.attachments = [];
     protocol.attachments.push(filePath);
     return this.protocolsRepository.save(protocol);
+  }
+
+  async getInboxCounts(userId: string, sectorId?: string): Promise<{ sectorCount: number; personalCount: number }> {
+    const personalCount = await this.protocolsRepository.count({
+      where: { createdById: userId, status: DocumentStatus.PENDING },
+    });
+    let sectorCount = 0;
+    if (sectorId) {
+      sectorCount = await this.protocolsRepository.count({
+        where: { currentSectorId: sectorId, status: DocumentStatus.PENDING },
+      });
+    }
+    return { sectorCount, personalCount };
+  }
+
+  async findPendingSignatures(userId: string, sectorId?: string) {
+    const queryBuilder = this.protocolsRepository
+      .createQueryBuilder('protocol')
+      .leftJoinAndSelect('protocol.createdBy', 'createdBy')
+      .leftJoinAndSelect('protocol.originSector', 'originSector')
+      .leftJoinAndSelect('protocol.currentSector', 'currentSector')
+      .where('protocol.status = :status', { status: DocumentStatus.WAITING_SIGNATURE })
+      .orderBy('protocol.createdAt', 'DESC');
+
+    if (sectorId) {
+      queryBuilder.andWhere('protocol.currentSectorId = :sectorId', { sectorId });
+    } else {
+      queryBuilder.andWhere('protocol.createdById = :userId', { userId });
+    }
+
+    return queryBuilder.getMany();
   }
 
   async getStats() {
