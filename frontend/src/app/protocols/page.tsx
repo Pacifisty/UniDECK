@@ -1,16 +1,40 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import { StatusBadge, PriorityBadge } from '@/components/ui/StatusBadge';
 import api from '@/lib/api';
+import { getUser } from '@/lib/auth';
 import { Protocol } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FilePlus, Search, SlidersHorizontal, ChevronLeft, ChevronRight, FileText, Loader2 } from 'lucide-react';
 
+const documentTypeLabels: Record<string, string> = {
+  memorando: 'Memorandos',
+  circular: 'Circulares',
+  oficio: 'Ofícios',
+  'ato-oficial': 'Atos Oficiais',
+  protocolo: 'Protocolos',
+  ouvidoria: 'Ouvidorias',
+  esic: 'Pedidos e-SIC',
+  fiscalizacao: 'Fiscalizações',
+  parecer: 'Pareceres',
+  'processo-adm': 'Processos Administrativos',
+  chamado: 'Chamados Técnicos',
+  'processo-seletivo': 'Processos Seletivos Simplificados',
+  alvara: 'Alvarás',
+  'habite-se': 'Habite-se',
+  'analise-projeto': 'Análises de Projeto',
+  certidao: 'Certidões',
+};
+
 export default function ProtocolsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const viewParam = searchParams.get('view');
+  const filterType = searchParams.get('filterType');
+
   const [protocols, setProtocols] = useState<Protocol[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -20,14 +44,18 @@ export default function ProtocolsPage() {
 
   const LIMIT = 15;
 
-  const fetchProtocols = async () => {
+  const fetchProtocols = useCallback(async () => {
     setLoading(true);
     try {
+      const user = getUser();
       const params = new URLSearchParams({
         page: String(page),
         limit: String(LIMIT),
         ...(search && { search }),
         ...(statusFilter && { status: statusFilter }),
+        ...(filterType && { type: filterType }),
+        ...(viewParam === 'sector' && user?.sectorId ? { sectorId: user.sectorId } : {}),
+        ...(viewParam === 'personal' && user?.id ? { createdById: user.id } : {}),
       });
       const res = await api.get(`/protocols?${params}`);
       setProtocols(res.data.data);
@@ -37,18 +65,33 @@ export default function ProtocolsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, statusFilter, viewParam, filterType]);
 
-  useEffect(() => { fetchProtocols(); }, [page, search, statusFilter]);
+  useEffect(() => { fetchProtocols(); }, [fetchProtocols]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1); }, [viewParam, filterType]);
 
   const totalPages = Math.ceil(total / LIMIT);
+
+  const pageTitle = viewParam === 'sector'
+    ? 'Inbox Principal'
+    : viewParam === 'personal'
+    ? 'Inbox Pessoal'
+    : filterType && documentTypeLabels[filterType]
+    ? documentTypeLabels[filterType]
+    : 'Protocolos';
+
+  const emptyHint = search || statusFilter || filterType || viewParam
+    ? 'Tente ajustar os filtros de busca.'
+    : 'Crie o primeiro protocolo clicando em "Novo Protocolo".';
 
   return (
     <MainLayout>
       <div className="space-y-5 max-w-7xl">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="page-title">Protocolos</h1>
+            <h1 className="page-title">{pageTitle}</h1>
             <p className="text-sm text-slate-500 mt-1">{total} protocolo{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}</p>
           </div>
           <button onClick={() => router.push('/protocols/new')} className="btn-primary">
@@ -101,9 +144,7 @@ export default function ProtocolsPage() {
                 <FileText className="w-7 h-7 text-slate-400" />
               </div>
               <p className="font-medium text-slate-700">Nenhum protocolo encontrado</p>
-              <p className="text-sm text-slate-500 mt-1">
-                {search || statusFilter ? 'Tente ajustar os filtros de busca.' : 'Crie o primeiro protocolo clicando em "Novo Protocolo".'}
-              </p>
+              <p className="text-sm text-slate-500 mt-1">{emptyHint}</p>
             </div>
           ) : (
             <table className="w-full">

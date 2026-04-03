@@ -1,11 +1,30 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import MainLayout from '@/components/layout/MainLayout';
 import api from '@/lib/api';
 import { Sector } from '@/types';
 import { ArrowLeft, FilePlus, Loader2, User, Info } from 'lucide-react';
+
+const documentTypes = [
+  { key: 'memorando',         label: 'Memorando' },
+  { key: 'circular',          label: 'Circular' },
+  { key: 'oficio',            label: 'Ofício' },
+  { key: 'ato-oficial',       label: 'Ato Oficial' },
+  { key: 'protocolo',         label: 'Protocolo' },
+  { key: 'ouvidoria',         label: 'Ouvidoria' },
+  { key: 'esic',              label: 'Pedido e-SIC' },
+  { key: 'fiscalizacao',      label: 'Fiscalização' },
+  { key: 'parecer',           label: 'Parecer' },
+  { key: 'processo-adm',      label: 'Processo Administrativo' },
+  { key: 'chamado',           label: 'Chamado Técnico' },
+  { key: 'processo-seletivo', label: 'Processo Seletivo Simplificado' },
+  { key: 'alvara',            label: 'Alvará' },
+  { key: 'habite-se',         label: 'Habite-se' },
+  { key: 'analise-projeto',   label: 'Análise de Projeto' },
+  { key: 'certidao',          label: 'Certidão' },
+];
 
 interface NewProtocolForm {
   subject: string;
@@ -39,11 +58,13 @@ function FormSection({ icon: Icon, title, children }: { icon: React.ElementType;
 
 export default function NewProtocolPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const docType = searchParams.get('docType') ?? '';
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { register, handleSubmit, watch, formState: { errors } } = useForm<NewProtocolForm>({
-    defaultValues: { priority: 'normal', isExternal: false }
+    defaultValues: { priority: 'normal', isExternal: false, documentType: docType }
   });
   const isExternal = watch('isExternal');
 
@@ -91,11 +112,12 @@ export default function NewProtocolPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Tipo de Documento</label>
-                <input
-                  {...register('documentType')}
-                  className="input-base"
-                  placeholder="Ex: Ofício, Requerimento, Memorando"
-                />
+                <select {...register('documentType')} className="input-base">
+                  <option value="">Selecione o tipo</option>
+                  {documentTypes.map(dt => (
+                    <option key={dt.key} value={dt.key}>{dt.label}</option>
+                  ))}
+                </select>
               </div>
 
               <div>

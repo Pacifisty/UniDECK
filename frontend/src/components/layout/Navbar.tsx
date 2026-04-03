@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { clearAuth, getUser } from '@/lib/auth';
+import { useInboxCounts } from '@/hooks/useInboxCounts';
 import { User } from '@/types';
 import clsx from 'clsx';
 import {
@@ -49,11 +50,13 @@ function DropdownItem({
   icon: Icon,
   label,
   href,
+  badge,
   onClick,
 }: {
   icon: React.ElementType;
   label: string;
   href: string;
+  badge?: number;
   onClick: () => void;
 }) {
   return (
@@ -63,7 +66,12 @@ function DropdownItem({
       className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-100 rounded-md mx-1"
     >
       <Icon className="w-4 h-4 shrink-0 text-slate-400" />
-      <span className="truncate">{label}</span>
+      <span className="truncate flex-1">{label}</span>
+      {badge != null && badge > 0 && (
+        <span className="ml-auto min-w-[1.25rem] h-5 px-1 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </Link>
   );
 }
@@ -74,6 +82,7 @@ export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<DropdownName>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const navRef = useRef<HTMLElement>(null);
+  const inboxCounts = useInboxCounts();
 
   useEffect(() => {
     setUser(getUser());
@@ -187,8 +196,8 @@ export default function Navbar() {
             </button>
             <div className={clsx(dropdownClass(openDropdown === 'inbox'), 'left-0 w-52')}>
               <div className="py-1.5">
-                <DropdownItem icon={Inbox}      label="Inbox principal" href="/inbox"          onClick={close} />
-                <DropdownItem icon={UserCircle} label="Inbox pessoal"   href="/inbox/personal" onClick={close} />
+                <DropdownItem icon={Inbox}      label="Inbox principal" href="/protocols?view=sector"   badge={inboxCounts.sectorCount}   onClick={close} />
+                <DropdownItem icon={UserCircle} label="Inbox pessoal"   href="/protocols?view=personal" badge={inboxCounts.personalCount} onClick={close} />
               </div>
             </div>
           </div>
@@ -217,7 +226,7 @@ export default function Navbar() {
                     key={dt.key}
                     icon={dt.icon}
                     label={dt.singular}
-                    href={`/documents/${dt.key}/new`}
+                    href={`/protocols/new?docType=${dt.key}`}
                     onClick={close}
                   />
                 ))}
@@ -249,7 +258,7 @@ export default function Navbar() {
                     key={dt.key}
                     icon={dt.icon}
                     label={dt.plural}
-                    href={`/documents/${dt.key}`}
+                    href={`/protocols?filterType=${dt.key}`}
                     onClick={close}
                   />
                 ))}
@@ -271,8 +280,8 @@ export default function Navbar() {
             </button>
             <div className={clsx(dropdownClass(openDropdown === 'estrutura'), 'left-0 w-52')}>
               <div className="py-1.5">
-                <DropdownItem icon={Network} label="Organograma"         href="/structure/organogram" onClick={close} />
-                <DropdownItem icon={Pen}     label="Fila de assinaturas" href="/structure/signatures" onClick={close} />
+                <DropdownItem icon={Network} label="Organograma"         href="/sectors/org-chart" onClick={close} />
+                <DropdownItem icon={Pen}     label="Fila de assinaturas" href="/signatures"        onClick={close} />
               </div>
             </div>
           </div>
